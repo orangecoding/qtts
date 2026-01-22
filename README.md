@@ -12,6 +12,17 @@ A simple, powerful CLI for generating high-quality speech from text using Qwen3-
 - **High Quality**: 12Hz tokenizer for natural-sounding speech
 - **MP3 Export**: Direct MP3 output for easy sharing
 
+## Quick Start for New Users
+
+```bash
+git clone <repo-url>
+cd qtts
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+./qtts.py "Hello world!" -s Ryan -l English
+```
+
 ## Installation
 
 ### Prerequisites
@@ -35,7 +46,7 @@ A simple, powerful CLI for generating high-quality speech from text using Qwen3-
 
 1. Clone or download this repository:
    ```bash
-   cd /Users/daliusdobravolskas/projects/qwen3
+   cd qtts
    ```
 
 2. Create a virtual environment with Python 3.12:
@@ -71,7 +82,7 @@ A simple, powerful CLI for generating high-quality speech from text using Qwen3-
 6. (Optional) Add to PATH for global access:
    ```bash
    # Add this line to your ~/.bashrc or ~/.zshrc
-   export PATH="/Users/daliusdobravolskas/projects/qwen3:$PATH"
+   export PATH="/path/to/qtts:$PATH"
    ```
 
 ## Quick Start
