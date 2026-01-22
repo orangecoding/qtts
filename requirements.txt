@@ -1,0 +1,17 @@
+# Qwen3-TTS CLI Dependencies
+
+# Core TTS engine
+qwen-tts
+
+# CLI framework
+click>=8.0.0
+
+# Audio processing
+pydub>=0.25.1
+soundfile>=0.12.1
+
+# Deep learning
+torch>=2.0.0
+
+# Optional but recommended for performance
+# flash-attn>=2.0.0  # Uncomment if you have compatible GPU
