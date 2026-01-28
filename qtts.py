@@ -166,7 +166,7 @@ def generate_design_mode(
 
 
 @click.command()
-@click.argument('text', type=str)
+@click.argument('text', type=str, required=False)
 @click.option(
     '-o', '--output',
     default='output.mp3',
@@ -273,6 +273,12 @@ def main(
         click.echo("  Auto, Chinese, English, Japanese, Korean,")
         click.echo("  German, French, Russian, Portuguese, Spanish, Italian")
         return
+    
+    # Require text argument if not using list options
+    if not text:
+        click.echo("Error: TEXT argument is required", err=True)
+        click.echo("Try 'qtts --help' for help.", err=True)
+        sys.exit(1)
     
     # Validate mode-specific requirements
     if mode == 'clone':

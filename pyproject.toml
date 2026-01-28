@@ -1,0 +1,51 @@
+# NOTE: This file is optional and provided for future pip/PyPI distribution.
+# The recommended installation method uses qtts-wrapper.sh (see README.md).
+# 
+# WARNING: pip installation may fail on some systems due to llvmlite build issues
+# with Python 3.12+ (a dependency of librosa via numba). Use the wrapper script
+# installation method instead for a hassle-free setup.
+
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qtts"
+version = "0.1.0"
+description = "Qwen3-TTS Command Line Interface for local speech generation"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Dalius Dobravolskas"}
+]
+keywords = ["tts", "text-to-speech", "qwen", "voice-cloning", "speech-synthesis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+    "qwen-tts",
+    "click>=8.0.0",
+    "pydub>=0.25.1",
+    "soundfile>=0.12.1",
+    "torch>=2.0.0",
+]
+
+[project.optional-dependencies]
+gpu = ["flash-attn>=2.0.0"]
+
+[project.scripts]
+qtts = "qtts:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/qtts"
+Repository = "https://github.com/yourusername/qtts"
+
+[tool.setuptools]
+py-modules = ["qtts"]

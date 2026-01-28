@@ -79,17 +79,49 @@ pip install -r requirements.txt
    chmod +x qtts.py
    ```
 
-6. (Optional) Add to PATH for global access:
+### System-Wide Installation (Optional)
+
+To make `qtts` available from anywhere on your system, use the wrapper script method:
+
+> **Note:** A `pyproject.toml` is included for future pip/PyPI distribution, but `pip install` is not recommended due to potential llvmlite build issues on Python 3.12+. The wrapper script method below is the recommended approach.
+
+1. Make the wrapper script executable:
    ```bash
-   # Add this line to your ~/.bashrc or ~/.zshrc
-   export PATH="/path/to/qtts:$PATH"
+   chmod +x qtts-wrapper.sh
    ```
+
+2. Create a symlink in your user bin directory (no sudo required):
+   ```bash
+   ln -sf "$(pwd)/qtts-wrapper.sh" ~/.local/bin/qtts
+   ```
+
+   **Note:** Make sure `~/.local/bin` is in your PATH. If not, add this to your `~/.bashrc` or `~/.zshrc`:
+   ```bash
+   export PATH="$HOME/.local/bin:$PATH"
+   ```
+
+3. Alternatively, for system-wide installation (requires sudo):
+   ```bash
+   sudo ln -sf "$(pwd)/qtts-wrapper.sh" /usr/local/bin/qtts
+   ```
+
+4. Verify installation:
+   ```bash
+   which qtts
+   qtts --list-speakers
+   ```
+
+After installation, you can run `qtts` from any directory without the `./` prefix or activating the virtual environment.
 
 ## Quick Start
 
 ### Basic Usage (Preset Voice)
 
 ```bash
+# If installed system-wide:
+qtts "Hello, welcome to Qwen3-TTS!" -s Vivian -l English
+
+# Or from the project directory:
 ./qtts.py "Hello, welcome to Qwen3-TTS!" -s Vivian -l English
 ```
 
@@ -98,7 +130,7 @@ This generates `output.mp3` with the Vivian voice speaking in English.
 ### With Emotion Control
 
 ```bash
-./qtts.py "I'm so excited to meet you!" -s Ryan -i "Very happy and energetic"
+qtts "I'm so excited to meet you!" -s Ryan -i "Very happy and energetic"
 ```
 
 ### Voice Cloning
@@ -125,8 +157,14 @@ Create a unique voice from a description:
 ### Command Structure
 
 ```bash
+# If installed system-wide:
+qtts [TEXT] [OPTIONS]
+
+# Or from the project directory:
 ./qtts.py [TEXT] [OPTIONS]
 ```
+
+**Note:** The rest of this guide uses `qtts` for brevity. If not installed system-wide, use `./qtts.py` instead.
 
 ### Core Options
 
@@ -161,7 +199,7 @@ Create a unique voice from a description:
 
 List all speakers:
 ```bash
-./qtts.py --list-speakers
+qtts --list-speakers
 ```
 
 #### Clone Mode (Voice Cloning)
@@ -196,26 +234,26 @@ Use `--list-languages` to display the full list.
 ### 1. English Speech with American Voice
 
 ```bash
-./qtts.py "Welcome to the future of text-to-speech" -s Aiden -l English
+qtts "Welcome to the future of text-to-speech" -s Aiden -l English
 ```
 
 ### 2. Chinese Speech with Emotion
 
 ```bash
-./qtts.py "其实我真的有发现，我是一个特别善于观察别人情绪的人。" \
+qtts "其实我真的有发现，我是一个特别善于观察别人情绪的人。" \
   -s Vivian -l Chinese -i "用特别愤怒的语气说"
 ```
 
 ### 3. Japanese Speech
 
 ```bash
-./qtts.py "こんにちは、世界！" -s Ono_Anna -l Japanese
+qtts "こんにちは、世界！" -s Ono_Anna -l Japanese
 ```
 
 ### 4. Clone Voice from URL
 
 ```bash
-./qtts.py "I am solving the equation" -m clone \
+qtts "I am solving the equation" -m clone \
   --ref-audio "https://example.com/voice.wav" \
   --ref-text "Original text from the audio" \
   -l English
@@ -224,7 +262,7 @@ Use `--list-languages` to display the full list.
 ### 5. Design a Character Voice
 
 ```bash
-./qtts.py "Prepare for trouble, and make it double!" -m design \
+qtts "Prepare for trouble, and make it double!" -m design \
   -i "Male villain voice, 30s, dramatic and theatrical with a hint of menace" \
   -l English -o villain.mp3
 ```
@@ -234,9 +272,9 @@ Use `--list-languages` to display the full list.
 Generate multiple files with different voices:
 
 ```bash
-./qtts.py "Hello world" -s Vivian -o output1.mp3
-./qtts.py "Hello world" -s Ryan -o output2.mp3
-./qtts.py "Hello world" -s Aiden -o output3.mp3
+qtts "Hello world" -s Vivian -o output1.mp3
+qtts "Hello world" -s Ryan -o output2.mp3
+qtts "Hello world" -s Aiden -o output3.mp3
 ```
 
 ## Tips & Best Practices
