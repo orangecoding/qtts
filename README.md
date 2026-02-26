@@ -217,11 +217,12 @@ qtts --list-speakers
 
 ### Advanced Options
 
-| Option | Description |
-|--------|-------------|
-| `--model` | Custom model path or HuggingFace ID |
-| `--device` | Device: `cuda:0`, `cpu`, `mps` (auto-detected) |
-| `--list-languages` | Show all supported languages |
+| Option             | Description                                                       |
+|--------------------|-------------------------------------------------------------------|
+| `--model`          | Custom model path or HuggingFace ID                               |
+| `--device`         | Device: `cuda:0`, `cpu`, `mps` (auto-detected)                    |
+| `--list-languages` | Show all supported languages                                      |
+| `--speed`          | Percentage. Changes the speed of the output voice. Default to 100 |
 
 ### Supported Languages
 
