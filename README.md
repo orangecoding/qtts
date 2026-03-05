@@ -1,6 +1,6 @@
 # qtts - Qwen3-TTS Command Line Interface
 
-A simple, powerful CLI for generating high-quality speech from text using Qwen3-TTS models locally.
+A simple, powerful CLI for generating high-quality speech from text using Qwen3-TTS models locally. CPU-only, production-ready, with a Node.js wrapper for programmatic integration.
 
 ## Features
 
@@ -9,10 +9,13 @@ A simple, powerful CLI for generating high-quality speech from text using Qwen3-
 - **Voice Design**: Generate custom voices from natural language descriptions
 - **Multi-language**: Supports 10 major languages (Chinese, English, Japanese, Korean, German, French, Russian, Portuguese, Spanish, Italian)
 - **Emotion Control**: Fine-tune tone, emotion, and speaking style with text instructions
+- **Speed Control**: Adjust playback speed from 50 % to 150 % of normal
 - **High Quality**: 12Hz tokenizer for natural-sounding speech
 - **MP3 Export**: Direct MP3 output for easy sharing
+- **Node.js Wrapper**: ESM module with async API for server-side integration
+- **Self-healing**: Automatic cleanup, garbage collection, and hard timeout protection
 
-## Quick Start for New Users
+## Quick Start
 
 ```bash
 git clone <repo-url>
@@ -27,20 +30,19 @@ pip install -r requirements.txt
 
 ### Prerequisites
 
-1. **Python 3.12** (recommended - see Troubleshooting if using 3.13/3.14)
+1. **Python 3.12** (recommended — see Troubleshooting if using 3.13/3.14)
 2. **ffmpeg** (for MP3 conversion):
    ```bash
    # macOS
    brew install ffmpeg sox
-   
+
    # Ubuntu/Debian
    sudo apt install ffmpeg sox
-   
+
    # Windows (using chocolatey)
    choco install ffmpeg sox
    ```
-
-3. **CUDA** (optional, for GPU acceleration - highly recommended)
+3. **Node.js 18+** (only if using the Node.js wrapper)
 
 ### Setup
 
@@ -54,7 +56,7 @@ pip install -r requirements.txt
    # macOS/Linux with brew-installed python3.12
    python3.12 -m venv venv
    source venv/bin/activate
-   
+
    # Or use conda
    conda create -n qwen3-tts python=3.12 -y
    conda activate qwen3-tts
@@ -65,16 +67,7 @@ pip install -r requirements.txt
    pip install -r requirements.txt
    ```
 
-4. (Optional) For better performance with NVIDIA GPU only:
-   ```bash
-   # Only works on Linux/Windows with CUDA-capable GPU
-   # Will NOT work on macOS or CPU-only systems
-   pip install flash-attn --no-build-isolation
-   ```
-   
-   **Note:** Flash-attention requires CUDA GPU. If installation fails, you can skip this step - the CLI will work fine without it (just a bit slower).
-
-5. Make the script executable:
+4. Make the script executable:
    ```bash
    chmod +x qtts.py
    ```
@@ -113,46 +106,7 @@ To make `qtts` available from anywhere on your system, use the wrapper script me
 
 After installation, you can run `qtts` from any directory without the `./` prefix or activating the virtual environment.
 
-## Quick Start
-
-### Basic Usage (Preset Voice)
-
-```bash
-# If installed system-wide:
-qtts "Hello, welcome to Qwen3-TTS!" -s Vivian -l English
-
-# Or from the project directory:
-./qtts.py "Hello, welcome to Qwen3-TTS!" -s Vivian -l English
-```
-
-This generates `output.mp3` with the Vivian voice speaking in English.
-
-### With Emotion Control
-
-```bash
-qtts "I'm so excited to meet you!" -s Ryan -i "Very happy and energetic"
-```
-
-### Voice Cloning
-
-Clone a voice from a reference audio:
-
-```bash
-./qtts.py "This is my cloned voice" -m clone \
-  --ref-audio path/to/reference.wav \
-  --ref-text "The text spoken in the reference audio"
-```
-
-### Voice Design
-
-Create a unique voice from a description:
-
-```bash
-./qtts.py "Hello there!" -m design \
-  -i "Young male voice, 25 years old, cheerful and confident tone"
-```
-
-## Usage Guide
+## Usage
 
 ### Command Structure
 
@@ -170,9 +124,10 @@ qtts [TEXT] [OPTIONS]
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-o, --output` | Output file path | `output.mp3` |
+| `-o, --output` | Output file path (.mp3 or .wav) | `output.mp3` |
 | `-m, --mode` | Generation mode: `custom`, `clone`, or `design` | `custom` |
 | `-l, --language` | Target language (see list below) | `Auto` |
+| `--speed` | Speed in percent (100 = normal, <100 = slower, >100 = faster) | `100` |
 
 ### Mode-Specific Options
 
@@ -217,12 +172,11 @@ qtts --list-speakers
 
 ### Advanced Options
 
-| Option             | Description                                                       |
-|--------------------|-------------------------------------------------------------------|
-| `--model`          | Custom model path or HuggingFace ID                               |
-| `--device`         | Device: `cuda:0`, `cpu`, `mps` (auto-detected)                    |
-| `--list-languages` | Show all supported languages                                      |
-| `--speed`          | Percentage. Changes the speed of the output voice. Default to 100 |
+| Option | Description |
+|--------|-------------|
+| `--model` | Custom model path or HuggingFace ID |
+| `--list-speakers` | Show all available preset speakers |
+| `--list-languages` | Show all supported languages |
 
 ### Supported Languages
 
@@ -268,9 +222,17 @@ qtts "Prepare for trouble, and make it double!" -m design \
   -l English -o villain.mp3
 ```
 
-### 6. Multiple Outputs
+### 6. Adjust Speed
 
-Generate multiple files with different voices:
+```bash
+# Slower speech (80 % speed)
+qtts "Take your time" -s Ryan --speed 80
+
+# Faster speech (130 % speed)
+qtts "Hurry up!" -s Aiden --speed 130
+```
+
+### 7. Multiple Outputs
 
 ```bash
 qtts "Hello world" -s Vivian -o output1.mp3
@@ -278,11 +240,103 @@ qtts "Hello world" -s Ryan -o output2.mp3
 qtts "Hello world" -s Aiden -o output3.mp3
 ```
 
+## Node.js Wrapper
+
+`qtts-wrapper.js` is an ESM module that wraps the Python CLI for use in Node.js applications. It provides an async `synthesize` function suitable for production server-side integration.
+
+### Programmatic Usage
+
+```js
+import { synthesize } from "./qtts-wrapper.js";
+
+try {
+  const outputPath = await synthesize({
+    text:    "Hello world",        // required — text to synthesise
+    output:  "/tmp/out.mp3",       // required — output file path
+    mode:    "custom",             // "clone" | "custom" | "design" (default: "custom")
+    speed:   50,                   // 0–100 slider, 50 = normal (default: 50)
+    model:   null,                 // custom model path or HuggingFace ID
+    refText: null,                 // reference transcript (required for clone mode)
+  });
+  console.log("Audio saved to:", outputPath);
+} catch (err) {
+  // err.code: 1 = validation/runtime error, 2 = timeout
+  console.error("Synthesis failed:", err.message, "code:", err.code);
+}
+```
+
+### CLI Usage
+
+```bash
+node qtts-wrapper.js --text "Hello" --output out.mp3 --mode custom --speed 50
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `text` | string | Yes | — | Text to synthesise |
+| `output` | string | Yes | — | Output file path |
+| `mode` | string | No | `"custom"` | `"clone"`, `"custom"`, or `"design"` |
+| `speed` | number | No | `50` | 0–100 slider (see speed mapping below) |
+| `model` | string | No | `null` | Custom model path or HuggingFace ID |
+| `refText` | string | No | `null` | Reference transcript (required for clone mode) |
+
+### Speed Mapping
+
+The wrapper uses a 0–100 slider that maps linearly to the Python CLI's percent scale:
+
+| Slider value | qtts `--speed` | Effect |
+|-------------|----------------|--------|
+| `0` | `50 %` | Half speed (slowest) |
+| `50` | `100 %` | Normal speed |
+| `100` | `150 %` | 1.5× speed (fastest) |
+
+### Error Handling
+
+The `synthesize` function returns a Promise that:
+
+- **Resolves** with the output file path (string) on success
+- **Rejects** with an `Error` whose `.code` property is the numeric exit code:
+  - `1` — validation or runtime error
+  - `2` — timeout (Python process killed after 30 minutes)
+
+### Timeout & Safety
+
+- The Python process is killed with `SIGKILL` after **30 minutes** if it hasn't completed
+- If the Node.js process receives `SIGTERM` or `SIGINT`, the child Python process is killed automatically
+- stdout/stderr from the Python process is forwarded to the Node.js process
+
+## Architecture
+
+```
+┌──────────────────┐     import      ┌───────────────────┐
+│  Your Node.js    │ ──────────────▶ │  qtts-wrapper.js  │
+│  Application     │   synthesize()  │  (ESM module)     │
+└──────────────────┘                 └────────┬──────────┘
+                                              │ execFile
+                                              ▼
+                                     ┌───────────────────┐
+                                     │  qtts-wrapper.sh  │
+                                     │  (venv activator) │
+                                     └────────┬──────────┘
+                                              │ exec
+                                              ▼
+                                     ┌───────────────────┐
+                                     │  qtts.py          │
+                                     │  (CPU inference)  │
+                                     └───────────────────┘
+```
+
+- **qtts-wrapper.js** — Node.js ESM wrapper. Validates input, maps speed, spawns the Python process with timeout protection, and exposes the async `synthesize` API.
+- **qtts-wrapper.sh** — Bash helper that resolves its real path (follows symlinks), activates the Python virtual environment, and `exec`s `qtts.py` with all arguments forwarded.
+- **qtts.py** — CPU-only Python CLI built on Click. Handles model loading (with caching), speech generation across all three modes, speed adjustment, and MP3 conversion. Protected by a 30-minute `SIGALRM` timeout with automatic garbage collection.
+
 ## Tips & Best Practices
 
 ### Voice Cloning
 - Use high-quality reference audio (clear, minimal background noise)
-- Reference audio should be 3-10 seconds long
+- Reference audio should be 3–10 seconds long
 - Provide accurate transcription for best results
 - Reference audio quality directly affects output quality
 
@@ -297,13 +351,13 @@ qtts "Hello world" -s Aiden -o output3.mp3
 - Avoid: "Nice voice"
 
 ### Performance
-- First run downloads models (~1-3GB), be patient
-- GPU (CUDA) recommended for faster generation
+- First run downloads models (~1–3 GB) — be patient
 - Models are cached after first use
 - Use shorter texts for faster processing
+- CPU inference is slower than GPU; expect longer generation times
 
 ### Language Selection
-- Set specific language when known (faster than Auto)
+- Set a specific language when known (faster than Auto)
 - Auto mode works well for mixed-language text
 - Each speaker performs best in their native language
 
@@ -316,7 +370,6 @@ qtts "Hello world" -s Aiden -o output3.mp3
 **Solution:** Use Python 3.12 instead:
 
 ```bash
-# If you have Python 3.12 installed via Homebrew
 rm -rf venv
 python3.12 -m venv venv
 source venv/bin/activate
@@ -333,11 +386,6 @@ conda install -c conda-forge numba librosa -y
 pip install -r requirements.txt
 ```
 
-### "CUDA out of memory"
-- Use CPU mode: `--device cpu`
-- Close other applications using GPU
-- Use smaller model (0.6B instead of 1.7B)
-
 ### "ffmpeg not found"
 - Install ffmpeg (see Prerequisites)
 - Or save as WAV: `-o output.wav`
@@ -353,39 +401,39 @@ pip install -r requirements.txt
 - Ensure text is clean (no special formatting)
 
 ### Slow generation
-- Use GPU if available
-- Install flash-attention: `pip install flash-attn --no-build-isolation`
-- Use 0.6B model instead of 1.7B
+- CPU inference is expected to be slower than GPU
+- Use the 0.6B models (custom/clone) for faster results
+- Use shorter input text for faster processing
+
+### Node.js wrapper errors
+- Ensure `qtts-wrapper.sh` is executable: `chmod +x qtts-wrapper.sh`
+- Ensure the Python virtual environment exists at `./venv/`
+- Check that Node.js 18+ is installed (`node --version`)
+- Timeout errors (code 2) may indicate the model is still downloading on first run
 
 ## Model Information
 
 ### Default Models
 
-- **Custom Mode**: `Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice` (~600MB)
-- **Clone Mode**: `Qwen/Qwen3-TTS-12Hz-0.6B-Base` (~600MB)
-- **Design Mode**: `Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign` (~1.7GB)
+- **Custom Mode**: `Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice` (~600 MB)
+- **Clone Mode**: `Qwen/Qwen3-TTS-12Hz-0.6B-Base` (~600 MB)
+- **Design Mode**: `Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign` (~1.7 GB)
 
 Models are automatically downloaded from HuggingFace on first use and cached locally.
 
 ### Hardware Requirements
 
-**Minimum:**
-- CPU: Any modern processor
-- RAM: 8GB
-- Storage: 5GB free
-
-**Recommended:**
-- GPU: NVIDIA GPU with 4GB+ VRAM (CUDA support)
-- RAM: 16GB
-- Storage: 10GB free
+- **CPU**: Any modern processor
+- **RAM**: 8 GB minimum, 16 GB recommended
+- **Storage**: 5–10 GB free (for models and venv)
 
 ## Technical Details
 
+- **Runtime**: CPU-only (float32, eager attention)
 - **Tokenizer**: Qwen3-TTS-Tokenizer-12Hz
 - **Architecture**: Discrete multi-codebook LM
-- **Precision**: bfloat16 (GPU) / float32 (CPU)
-- **Sample Rate**: 24kHz output
-- **Latency**: ~2-5 seconds per sentence (GPU)
+- **Sample Rate**: 24 kHz output
+- **Timeout**: 30-minute hard limit (both Python SIGALRM and Node.js process kill)
 
 ## License
 
