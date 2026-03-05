@@ -23,7 +23,7 @@ from pydub import AudioSegment
 _model_cache = {}
 
 # Hard timeout (seconds) for the entire generation process to prevent hangs
-GENERATION_TIMEOUT = 1800
+GENERATION_TIMEOUT = 2700
 
 
 def _timeout_handler(signum, frame):

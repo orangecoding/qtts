@@ -40,7 +40,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** Maximum milliseconds the Python process may run before being killed. */
-const PROCESS_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const PROCESS_TIMEOUT_MS = 45 * 60 * 1000; // 30 minutes
 
 /** Resolve qtts command — prefer the shell wrapper next to this script. */
 const QTTS_CMD = join(__dirname, "qtts-wrapper.sh");
